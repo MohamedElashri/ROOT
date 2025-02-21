@@ -1,6 +1,10 @@
 name: Build ROOT for Multiple Python and ROOT Versions
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -12,10 +16,10 @@ jobs:
         root-version: ['6.30.04', '6.32.04', '6.34.04']
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         
@@ -107,7 +111,7 @@ jobs:
 
     - name: Upload Build Logs on Failure
       if: failure()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: build-logs-root${{ matrix.root-version }}-python${{ matrix.python-version }}
         path: |
