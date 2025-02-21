@@ -38,7 +38,7 @@ jobs:
           xlibmesa-glu-dev libglew-dev libftgl-dev \
           libmysqlclient-dev libfftw3-dev libcfitsio-dev \
           graphviz-dev libavahi-compat-libdnssd-dev \
-          libldap2-dev python3-dev libxml2-dev libkrb5-dev \
+          libldap2-dev python3-dev libxml2-dev \
           libgsl-dev gfortran tar wget \
           libtbb-dev \
           ninja-build \
@@ -54,6 +54,13 @@ jobs:
       run: |
         mkdir root-build
         cd root-build
+        
+        # Set version comparison variables
+        ROOT_VERSION="${{ matrix.root-version }}"
+        ROOT_MAJOR=$(echo $ROOT_VERSION | cut -d. -f1)
+        ROOT_MINOR=$(echo $ROOT_VERSION | cut -d. -f2)
+        ROOT_PATCH=$(echo $ROOT_VERSION | cut -d. -f3)
+        
         # Set common CMake flags
         COMMON_CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=/usr/local \
           -Dpython=ON \
@@ -71,7 +78,6 @@ jobs:
           -Dbuiltin_glew=ON \
           -Dasimage=ON \
           -Dgdml=ON \
-          -Dkrb5=ON \
           -Dhttp=ON \
           -Dvc=OFF \
           -Dimt=ON \
@@ -84,17 +90,27 @@ jobs:
           -Dopengl=ON \
           -Dbuiltin_tbb=OFF \
           -Dtbb=ON \
+          -Dcuda=OFF \
+          -Dcudnn=OFF \
           -GNinja"
 
         # Add version-specific flags
-        if [[ "${{ matrix.root-version }}" < "6.30.00" ]]; then
-          EXTRA_FLAGS="-Dgsl_shared=ON"
+        VERSION_SPECIFIC_FLAGS=""
+        
+        # For ROOT < 6.32
+        if [[ $ROOT_MINOR -lt 32 ]]; then
+          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dkrb5=ON"
+        fi
+        
+        # For ROOT < 6.30
+        if [[ $ROOT_MINOR -lt 30 ]]; then
+          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl_shared=ON"
         else
-          EXTRA_FLAGS="-Dgsl=ON"
+          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl=ON"
         fi
 
         # Configure with all flags
-        cmake ../root-${{ matrix.root-version }} ${COMMON_CMAKE_FLAGS} ${EXTRA_FLAGS}
+        cmake ../root-${{ matrix.root-version }} ${COMMON_CMAKE_FLAGS} ${VERSION_SPECIFIC_FLAGS}
         
         # Build using Ninja
         ninja -j$(nproc)
