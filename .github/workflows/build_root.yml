@@ -97,10 +97,7 @@ jobs:
         # Add version-specific flags
         VERSION_SPECIFIC_FLAGS=""
         
-        # For ROOT < 6.32
-        if [[ $ROOT_MINOR -lt 32 ]]; then
-          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dkrb5=ON"
-        fi
+        # Version specific flags go here if needed in the future
         
         # For ROOT < 6.30
         if [[ $ROOT_MINOR -lt 30 ]]; then
