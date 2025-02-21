@@ -23,6 +23,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install numpy
+
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -35,7 +40,10 @@ jobs:
           graphviz-dev libavahi-compat-libdnssd-dev \
           libldap2-dev python3-dev libxml2-dev libkrb5-dev \
           libgsl-dev gfortran tar wget \
-          libtbb-dev
+          libtbb-dev \
+          ninja-build \
+          python3-numpy \
+          libgsl-dev
           
     - name: Download and extract ROOT source
       run: |
@@ -46,8 +54,8 @@ jobs:
       run: |
         mkdir root-build
         cd root-build
-        cmake ../root-${{ matrix.root-version }} \
-          -DCMAKE_INSTALL_PREFIX=/usr/local \
+        # Set common CMake flags
+        COMMON_CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=/usr/local \
           -Dpython=ON \
           -DPYTHON_EXECUTABLE=$(which python3) \
           -Dmathmore=ON \
@@ -64,8 +72,6 @@ jobs:
           -Dasimage=ON \
           -Dgdml=ON \
           -Dkrb5=ON \
-          -Dgsl_shared=ON \
-          -Dbuiltin_gsl=OFF \
           -Dhttp=ON \
           -Dvc=OFF \
           -Dimt=ON \
@@ -77,14 +83,26 @@ jobs:
           -Dwebgui=ON \
           -Dopengl=ON \
           -Dbuiltin_tbb=OFF \
-          -Dtbb=ON
+          -Dtbb=ON \
+          -GNinja"
+
+        # Add version-specific flags
+        if [[ "${{ matrix.root-version }}" < "6.30.00" ]]; then
+          EXTRA_FLAGS="-Dgsl_shared=ON"
+        else
+          EXTRA_FLAGS="-Dgsl=ON"
+        fi
+
+        # Configure with all flags
+        cmake ../root-${{ matrix.root-version }} ${COMMON_CMAKE_FLAGS} ${EXTRA_FLAGS}
         
-        cmake --build . -- -j$(nproc)
+        # Build using Ninja
+        ninja -j$(nproc)
         
     - name: Package ROOT
       run: |
         cd root-build
-        sudo make install
+        sudo ninja install
         cd /usr/local
         tar czf root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz *
         
