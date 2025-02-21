@@ -66,7 +66,6 @@ jobs:
           -Dpython=ON \
           -DPYTHON_EXECUTABLE=$(which python3) \
           -Dmathmore=ON \
-          -Dminuit2=ON \
           -Droofit=ON \
           -Dthread=ON \
           -Dssl=ON \
@@ -96,8 +95,6 @@ jobs:
 
         # Add version-specific flags
         VERSION_SPECIFIC_FLAGS=""
-        
-        # Version specific flags go here if needed in the future
         
         # For ROOT < 6.30
         if [[ $ROOT_MINOR -lt 30 ]]; then
