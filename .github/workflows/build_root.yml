@@ -1,6 +1,10 @@
 name: Build ROOT for Multiple Python and ROOT Versions
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -126,8 +130,9 @@ jobs:
         cd root-build
         source ../venv/bin/activate
         sudo ninja install
-        cd /usr/local
-        tar czf root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz *
+        # Create package in home directory where we have permissions
+        cd $HOME
+        sudo tar czf root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz -C /usr/local .
         
     - name: Create Release
       id: create_release
@@ -146,7 +151,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /usr/local/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
+        asset_path: ~/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
         asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
         asset_content_type: application/gzip
 
