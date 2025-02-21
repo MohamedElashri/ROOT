@@ -1,0 +1,115 @@
+name: Build ROOT for Multiple Python and ROOT Versions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+        root-version: ['6.30.04', '6.32.04', '6.34.04']
+        
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          dpkg-dev cmake g++ gcc binutils \
+          libx11-dev libxpm-dev libxft-dev libxext-dev \
+          libssl-dev libpcre3-dev \
+          xlibmesa-glu-dev libglew-dev libftgl-dev \
+          libmysqlclient-dev libfftw3-dev libcfitsio-dev \
+          graphviz-dev libavahi-compat-libdnssd-dev \
+          libldap2-dev python3-dev libxml2-dev libkrb5-dev \
+          libgsl-dev gfortran tar wget \
+          libtbb-dev
+          
+    - name: Download and extract ROOT source
+      run: |
+        wget https://root.cern/download/root_v${{ matrix.root-version }}.source.tar.gz
+        tar -xzvf root_v${{ matrix.root-version }}.source.tar.gz
+        
+    - name: Configure and build ROOT
+      run: |
+        mkdir root-build
+        cd root-build
+        cmake ../root-${{ matrix.root-version }} \
+          -DCMAKE_INSTALL_PREFIX=/usr/local \
+          -Dpython=ON \
+          -DPYTHON_EXECUTABLE=$(which python3) \
+          -Dmathmore=ON \
+          -Dminuit2=ON \
+          -Droofit=ON \
+          -Dthread=ON \
+          -Dssl=ON \
+          -Dxml=ON \
+          -Dxrootd=OFF \
+          -Dbuiltin_xrootd=OFF \
+          -Dbuiltin_afterimage=ON \
+          -Dbuiltin_ftgl=ON \
+          -Dbuiltin_glew=ON \
+          -Dasimage=ON \
+          -Dgdml=ON \
+          -Dkrb5=ON \
+          -Dgsl_shared=ON \
+          -Dbuiltin_gsl=OFF \
+          -Dhttp=ON \
+          -Dvc=OFF \
+          -Dimt=ON \
+          -Dccache=OFF \
+          -Dpyroot=ON \
+          -DCMAKE_CXX_STANDARD=17 \
+          -Dtesting=OFF \
+          -Droot7=ON \
+          -Dwebgui=ON \
+          -Dopengl=ON \
+          -Dbuiltin_tbb=OFF \
+          -Dtbb=ON
+        
+        cmake --build . -- -j$(nproc)
+        
+    - name: Package ROOT
+      run: |
+        cd root-build
+        sudo make install
+        cd /usr/local
+        tar czf root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz *
+        
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ matrix.root-version }}-py${{ matrix.python-version }}
+        release_name: ROOT v${{ matrix.root-version }} for Python ${{ matrix.python-version }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: /usr/local/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
+        asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload Build Logs on Failure
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-logs-root${{ matrix.root-version }}-python${{ matrix.python-version }}
+        path: |
+          root-build/CMakeFiles/CMakeError.log
+          root-build/CMakeFiles/CMakeOutput.log
