@@ -84,7 +84,6 @@ jobs:
           -Dxml=ON \
           -Dxrootd=OFF \
           -Dbuiltin_xrootd=OFF \
-          -Dbuiltin_afterimage=ON \
           -Dbuiltin_ftgl=ON \
           -Dbuiltin_glew=ON \
           -Dasimage=ON \
@@ -108,11 +107,16 @@ jobs:
         # Add version-specific flags
         VERSION_SPECIFIC_FLAGS=""
         
-        # For ROOT < 6.30
+        # Version specific flags for different ROOT versions
         if [[ $ROOT_MINOR -lt 30 ]]; then
           VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl_shared=ON"
         else
           VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl=ON"
+        fi
+        
+        # Add builtin_afterimage only for versions < 6.34
+        if [[ $ROOT_MINOR -lt 34 ]]; then
+          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dbuiltin_afterimage=ON"
         fi
 
         # Configure with all flags
