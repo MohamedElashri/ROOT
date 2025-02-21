@@ -23,10 +23,17 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         
-    - name: Install Python dependencies
+    - name: Setup Python environment
       run: |
+        python -m venv venv
+        source venv/bin/activate
         python -m pip install --upgrade pip
         python -m pip install numpy
+        # Store Python paths for CMake configuration
+        echo "PYTHON_PATH=$(which python)" >> $GITHUB_ENV
+        echo "PYTHON_LIBRARY=$(python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") + "/lib" + sysconfig.get_config_var("LDLIBRARY"))')" >> $GITHUB_ENV
+        echo "PYTHON_INCLUDE_DIR=$(python -c 'import sysconfig; print(sysconfig.get_config_var("INCLUDEPY"))')" >> $GITHUB_ENV
+        echo "NUMPY_INCLUDE_DIR=$(python -c 'import numpy; print(numpy.get_include())')" >> $GITHUB_ENV
 
     - name: Install system dependencies
       run: |
@@ -54,6 +61,7 @@ jobs:
       run: |
         mkdir root-build
         cd root-build
+        source ../venv/bin/activate
         
         # Set version comparison variables
         ROOT_VERSION="${{ matrix.root-version }}"
@@ -63,8 +71,12 @@ jobs:
         
         # Set common CMake flags
         COMMON_CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=/usr/local \
-          -Dpython=ON \
-          -DPYTHON_EXECUTABLE=$(which python3) \
+          -DPYTHON_EXECUTABLE=$PYTHON_PATH \
+          -DPython3_ROOT_DIR=$(dirname $(dirname $PYTHON_PATH)) \
+          -DPython3_EXECUTABLE=$PYTHON_PATH \
+          -DPython3_LIBRARY=$PYTHON_LIBRARY \
+          -DPython3_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
+          -DPython3_NumPy_INCLUDE_DIRS=$NUMPY_INCLUDE_DIR \
           -Dmathmore=ON \
           -Droofit=ON \
           -Dthread=ON \
@@ -112,6 +124,7 @@ jobs:
     - name: Package ROOT
       run: |
         cd root-build
+        source ../venv/bin/activate
         sudo ninja install
         cd /usr/local
         tar czf root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz *
