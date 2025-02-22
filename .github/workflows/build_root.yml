@@ -125,14 +125,14 @@ jobs:
         # Build using Ninja
         ninja -j$(nproc)
         
-    - name: Package ROOT
+- name: Package ROOT
       run: |
         cd root-build
         source ../venv/bin/activate
         sudo ninja install
-        # Create package in home directory where we have permissions
-        cd $HOME
-        sudo tar czf root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz -C /usr/local .
+        # Create package with absolute path
+        mkdir -p /home/runner/artifacts
+        sudo tar czf /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz -C /usr/local .
         
     - name: Create Release
       id: create_release
@@ -151,15 +151,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ~/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
+        asset_path: /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
         asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
         asset_content_type: application/gzip
-
-    - name: Upload Build Logs on Failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs-root${{ matrix.root-version }}-python${{ matrix.python-version }}
-        path: |
-          root-build/CMakeFiles/CMakeError.log
-          root-build/CMakeFiles/CMakeOutput.log
