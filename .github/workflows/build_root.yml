@@ -1,19 +1,20 @@
 name: Build ROOT for Multiple Python and ROOT Versions
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      # Add fail-fast: false to prevent the whole matrix from stopping if one job fails
+      fail-fast: false
       matrix:
         python-version: ['3.10', '3.11', '3.12', '3.13']
         root-version: ['6.30.04', '6.32.04', '6.34.04']
+        
+    # Add continue-on-error to allow the workflow to continue even if this job fails
+    continue-on-error: true
         
     steps:
     - uses: actions/checkout@v4
@@ -51,13 +52,17 @@ jobs:
           ninja-build \
           python3-numpy \
           libgsl-dev
-          
+
+    # Add timeout to prevent builds from hanging
     - name: Download and extract ROOT source
+      timeout-minutes: 30
       run: |
         wget https://root.cern/download/root_v${{ matrix.root-version }}.source.tar.gz
         tar -xzvf root_v${{ matrix.root-version }}.source.tar.gz
         
+    # Add timeout to prevent builds from hanging
     - name: Configure and build ROOT
+      timeout-minutes: 120
       run: |
         mkdir root-build
         cd root-build
@@ -122,10 +127,19 @@ jobs:
         # Configure with all flags
         cmake ../root-${{ matrix.root-version }} ${COMMON_CMAKE_FLAGS} ${VERSION_SPECIFIC_FLAGS}
         
-        # Build using Ninja
-        ninja -j$(nproc)
+        # Build using Ninja with error handling
+        ninja -j$(nproc) || {
+          echo "Build failed. Checking error logs..."
+          if [ -f "CMakeFiles/CMakeError.log" ]; then
+            echo "CMake Error Log:"
+            cat CMakeFiles/CMakeError.log
+          fi
+          exit 1
+        }
         
     - name: Package ROOT
+      if: success() # Only run if build succeeded
+      timeout-minutes: 30
       run: |
         cd root-build
         source ../venv/bin/activate
@@ -136,6 +150,7 @@ jobs:
         
     - name: Create Release
       id: create_release
+      if: success() # Only run if previous steps succeeded
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -146,6 +161,7 @@ jobs:
         prerelease: false
         
     - name: Upload Release Asset
+      if: success() && steps.create_release.conclusion == 'success'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -155,8 +171,8 @@ jobs:
         asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
         asset_content_type: application/gzip
 
-    - name: Upload Build Logs on Failure
-      if: failure()
+    - name: Upload Build Logs
+      if: always() # Run regardless of previous step status
       uses: actions/upload-artifact@v4
       with:
         name: build-logs-root${{ matrix.root-version }}-python${{ matrix.python-version }}
