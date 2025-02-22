@@ -2,9 +2,6 @@ name: Build ROOT for Multiple Python and ROOT Versions
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -13,8 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
-        root-version: ['6.30.04', '6.32.04', '6.34.04']
+        python-version: ['3.11']
+        root-version: ['6.30.04', '6.32.04']
         
     continue-on-error: true
         
@@ -239,12 +236,3 @@ jobs:
         asset_path: /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
         asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
         asset_content_type: application/x-xz
-
-    - name: Upload Build Logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs-root${{ matrix.root-version }}-python${{ matrix.python-version }}
-        path: |
-          root-build/CMakeFiles/CMakeError.log
-          root-build/CMakeFiles/CMakeOutput.log
