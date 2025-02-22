@@ -1,6 +1,6 @@
 # ROOT for Google Colab
 
-This repository provides pre-built ROOT binaries specifically for Google Colab environments. It aims to simplify the process of using ROOT in Colab notebooks by providing ready-to-use builds that match Colab's Python versions.
+This repository provides optimized ROOT binaries specifically for Google Colab environments. It aims to simplify the process of using ROOT in Colab notebooks by providing lightweight, ready-to-use builds that match Colab's Python versions.
 
 ## 🎯 Purpose
 
@@ -23,26 +23,26 @@ Each ROOT version is built for Python versions:
 
 | Colab Python Version | Recommended ROOT Version | Download Link Template |
 |---------------------|-------------------------|----------------------|
-| 3.10 | 6.30.04 | `root_v6.30.04_Ubuntu_Python3.10.tar.gz` |
-| 3.11 | 6.32.04 | `root_v6.32.04_Ubuntu_Python3.11.tar.gz` |
-| Future versions | 6.34.04 | `root_v6.34.04_Ubuntu_Python{version}.tar.gz` |
+| 3.10 | 6.30.04 | `root_v6.30.04_Ubuntu_Python3.10.tar.xz` |
+| 3.11 | 6.32.04 | `root_v6.32.04_Ubuntu_Python3.11.tar.xz` |
+| Future versions | 6.34.04 | `root_v6.34.04_Ubuntu_Python{version}.tar.xz` |
 
 ## 📥 Available Downloads
 
 | ROOT Version | Python Version | Download Link |
 |-------------|----------------|---------------|
-| 6.30.04 | 3.10 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04-py3.10/root_v6.30.04_Ubuntu_Python3.10.tar.gz) |
-| 6.30.04 | 3.11 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04-py3.11/root_v6.30.04_Ubuntu_Python3.11.tar.gz) |
-| 6.30.04 | 3.12 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04-py3.12/root_v6.30.04_Ubuntu_Python3.12.tar.gz) |
-| 6.30.04 | 3.13 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04-py3.13/root_v6.30.04_Ubuntu_Python3.13.tar.gz) |
-| 6.32.04 | 3.10 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.10/root_v6.32.04_Ubuntu_Python3.10.tar.gz) |
-| 6.32.04 | 3.11 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.11/root_v6.32.04_Ubuntu_Python3.11.tar.gz) |
-| 6.32.04 | 3.12 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.12/root_v6.32.04_Ubuntu_Python3.12.tar.gz) |
-| 6.32.04 | 3.13 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.13/root_v6.32.04_Ubuntu_Python3.13.tar.gz) |
-| 6.34.04 | 3.10 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.34.04-py3.10/root_v6.34.04_Ubuntu_Python3.10.tar.gz) |
-| 6.34.04 | 3.11 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.34.04-py3.11/root_v6.34.04_Ubuntu_Python3.11.tar.gz) |
-| 6.34.04 | 3.12 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.34.04-py3.12/root_v6.34.04_Ubuntu_Python3.12.tar.gz) |
-| 6.34.04 | 3.13 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.34.04-py3.13/root_v6.34.04_Ubuntu_Python3.13.tar.gz) |
+| 6.30.04 | 3.10 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04-py3.10/root_v6.30.04_Ubuntu_Python3.10.tar.xz) |
+| 6.30.04 | 3.11 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04-py3.11/root_v6.30.04_Ubuntu_Python3.11.tar.xz) |
+| 6.30.04 | 3.12 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04-py3.12/root_v6.30.04_Ubuntu_Python3.12.tar.xz) |
+| 6.30.04 | 3.13 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04-py3.13/root_v6.30.04_Ubuntu_Python3.13.tar.xz) |
+| 6.32.04 | 3.10 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.10/root_v6.32.04_Ubuntu_Python3.10.tar.xz) |
+| 6.32.04 | 3.11 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.11/root_v6.32.04_Ubuntu_Python3.11.tar.xz) |
+| 6.32.04 | 3.12 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.12/root_v6.32.04_Ubuntu_Python3.12.tar.xz) |
+| 6.32.04 | 3.13 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.13/root_v6.32.04_Ubuntu_Python3.13.tar.xz) |
+| 6.34.04 | 3.10 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.34.04-py3.10/root_v6.34.04_Ubuntu_Python3.10.tar.xz) |
+| 6.34.04 | 3.11 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.34.04-py3.11/root_v6.34.04_Ubuntu_Python3.11.tar.xz) |
+| 6.34.04 | 3.12 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.34.04-py3.12/root_v6.34.04_Ubuntu_Python3.12.tar.xz) |
+| 6.34.04 | 3.13 | [Download](https://github.com/MohamedElashri/ROOT/releases/download/v6.34.04-py3.13/root_v6.34.04_Ubuntu_Python3.13.tar.xz) |
 
 ## 🚀 Quick Start
 
@@ -54,9 +54,9 @@ Each ROOT version is built for Python versions:
 2. Download and install the appropriate ROOT build:
 ```python
 # Example for Python 3.11 with ROOT 6.32.04
-!wget https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.11/root_v6.32.04_Ubuntu_Python3.11.tar.gz
-!tar -xzf root_v6.32.04_Ubuntu_Python3.11.tar.gz -C /usr/local
-!rm root_v6.32.04_Ubuntu_Python3.11.tar.gz
+!wget https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.11/root_v6.32.04_Ubuntu_Python3.11.tar.xz
+!tar -xf root_v6.32.04_Ubuntu_Python3.11.tar.xz -C /usr/local
+!rm root_v6.32.04_Ubuntu_Python3.11.tar.xz
 ```
 
 3. Set up the environment:
@@ -83,9 +83,9 @@ Here's a complete example for current Colab (Python 3.11):
 !python --version
 
 # Install ROOT
-!wget https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.11/root_v6.32.04_Ubuntu_Python3.11.tar.gz
-!tar -xzf root_v6.32.04_Ubuntu_Python3.11.tar.gz -C /usr/local
-!rm root_v6.32.04_Ubuntu_Python3.11.tar.gz
+!wget https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04-py3.11/root_v6.32.04_Ubuntu_Python3.11.tar.xz
+!tar -xf root_v6.32.04_Ubuntu_Python3.11.tar.xz -C /usr/local
+!rm root_v6.32.04_Ubuntu_Python3.11.tar.xz
 
 # Set environment variables
 import os
@@ -98,9 +98,7 @@ os.environ['PYTHONPATH'] = f"{os.environ['ROOTSYS']}/lib:" + os.environ.get('PYT
 import ROOT
 h = ROOT.TH1F("gauss","Example histogram",100,-4,4)
 h.FillRandom("gaus")
-c = ROOT.TCanvas("myCanvasName","The Canvas Title",800,600)
 h.Draw()
-c.Draw()
 ```
 
 ## 🔄 Version Updates
@@ -117,15 +115,24 @@ When Google Colab updates its Python version:
 
 ## 🛠 Build Features
 
-These ROOT builds include:
-- Python bindings (PyROOT)
-- RooFit for statistical analysis
-- Multithreading support
-- OpenGL visualization
-- Web-based display support
-- GSL integration
-- Math libraries (mathmore)
-- SSL and XML support
+These optimized ROOT builds include essential features for data analysis:
+
+**Included Components**:
+- ✅ Python bindings (PyROOT)
+- ✅ RooFit for statistical analysis
+- ✅ Multithreading support (IMT)
+- ✅ Core mathematical libraries
+- ✅ Basic ROOT functionality
+- ✅ SSL and XML support
+- ✅ GSL integration
+
+**Excluded for Optimization**:
+- ❌ Graphics components (OpenGL, WebGUI)
+- ❌ Database support (MySQL, SQLite, PostgreSQL)
+- ❌ External physics libraries (PYTHIA6/8)
+- ❌ Optional tools and analyzers
+- ❌ ROOT 7 features
+- ❌ Debug symbols
 
 ## ⚠️ Known Issues
 
@@ -138,15 +145,14 @@ These ROOT builds include:
 
 2. If ROOT fails to import after installation, try restarting your Colab runtime
 
-3. If you encounter any issues, please open a new issue on this repository
+3. If you need any of the excluded features, You will need to build ROOT with them
 
-## 📄 License
+***Building ROOT in the same colab runtime will take most of the runtime allocation time because it takes long time to build***
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+5. If you encounter any issues, please open a new issue on this repository
 
 ## 🙏 Acknowledgments
 
 - CERN ROOT team for the amazing ROOT framework
 - Google Colab team for providing free GPU resources
 - All contributors and users of this project
-
