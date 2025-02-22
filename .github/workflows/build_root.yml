@@ -172,7 +172,7 @@ jobs:
         find . -type f -executable -exec strip --strip-all {} + || true
         
     - name: Package ROOT with maximum compression
-      timeout-minutes: 30
+      # timeout-minutes: 30
       run: |
         cd root-build
         source ../venv/bin/activate
