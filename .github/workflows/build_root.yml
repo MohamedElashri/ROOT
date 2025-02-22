@@ -1,19 +1,21 @@
 name: Build ROOT for Multiple Python and ROOT Versions
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
-      # Add fail-fast: false to prevent the whole matrix from stopping if one job fails
       fail-fast: false
       matrix:
         python-version: ['3.10', '3.11', '3.12', '3.13']
         root-version: ['6.30.04', '6.32.04', '6.34.04']
         
-    # Add continue-on-error to allow the workflow to continue even if this job fails
     continue-on-error: true
         
     steps:
@@ -30,37 +32,29 @@ jobs:
         source venv/bin/activate
         python -m pip install --upgrade pip
         python -m pip install numpy
-        # Store Python paths for CMake configuration
         echo "PYTHON_PATH=$(which python)" >> $GITHUB_ENV
         echo "PYTHON_LIBRARY=$(python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") + "/lib" + sysconfig.get_config_var("LDLIBRARY"))')" >> $GITHUB_ENV
         echo "PYTHON_INCLUDE_DIR=$(python -c 'import sysconfig; print(sysconfig.get_config_var("INCLUDEPY"))')" >> $GITHUB_ENV
         echo "NUMPY_INCLUDE_DIR=$(python -c 'import numpy; print(numpy.get_include())')" >> $GITHUB_ENV
 
-    - name: Install system dependencies
+    - name: Install minimal system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           dpkg-dev cmake g++ gcc binutils \
           libx11-dev libxpm-dev libxft-dev libxext-dev \
           libssl-dev libpcre3-dev \
-          xlibmesa-glu-dev libglew-dev libftgl-dev \
-          libmysqlclient-dev libfftw3-dev libcfitsio-dev \
-          graphviz-dev libavahi-compat-libdnssd-dev \
-          libldap2-dev python3-dev libxml2-dev \
           libgsl-dev gfortran tar wget \
-          libtbb-dev \
           ninja-build \
           python3-numpy \
-          libgsl-dev
-
-    # Add timeout to prevent builds from hanging
+          libgsl-dev jq \
+          
     - name: Download and extract ROOT source
       timeout-minutes: 30
       run: |
         wget https://root.cern/download/root_v${{ matrix.root-version }}.source.tar.gz
         tar -xzvf root_v${{ matrix.root-version }}.source.tar.gz
         
-    # Add timeout to prevent builds from hanging
     - name: Configure and build ROOT
       timeout-minutes: 120
       run: |
@@ -68,20 +62,37 @@ jobs:
         cd root-build
         source ../venv/bin/activate
         
-        # Set version comparison variables
+        # Get system information
+        echo "CPU Information:"
+        lscpu
+        echo "Memory Information:"
+        free -h
+        
+        # Calculate optimal number of jobs for ninja
+        TOTAL_MEM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+        TOTAL_MEM_GB=$((TOTAL_MEM_KB/1024/1024))
+        MAX_JOBS_BY_MEM=$((TOTAL_MEM_GB/4))
+        NUM_CORES=$(nproc)
+        NUM_JOBS=$(( MAX_JOBS_BY_MEM < NUM_CORES ? MAX_JOBS_BY_MEM : NUM_CORES ))
+        NUM_JOBS=$(( NUM_JOBS > 0 ? NUM_JOBS : 1 ))
+        
+        echo "Building with $NUM_JOBS parallel jobs"
+        
         ROOT_VERSION="${{ matrix.root-version }}"
         ROOT_MAJOR=$(echo $ROOT_VERSION | cut -d. -f1)
         ROOT_MINOR=$(echo $ROOT_VERSION | cut -d. -f2)
         ROOT_PATCH=$(echo $ROOT_VERSION | cut -d. -f3)
         
-        # Set common CMake flags
+        # Optimized CMake flags for smaller build
         COMMON_CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=/usr/local \
+          -DCMAKE_BUILD_TYPE=MinSizeRel \
           -DPYTHON_EXECUTABLE=$PYTHON_PATH \
           -DPython3_ROOT_DIR=$(dirname $(dirname $PYTHON_PATH)) \
           -DPython3_EXECUTABLE=$PYTHON_PATH \
           -DPython3_LIBRARY=$PYTHON_LIBRARY \
           -DPython3_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
           -DPython3_NumPy_INCLUDE_DIRS=$NUMPY_INCLUDE_DIR \
+          -Dpyroot=ON \
           -Dmathmore=ON \
           -Droofit=ON \
           -Dthread=ON \
@@ -89,46 +100,64 @@ jobs:
           -Dxml=ON \
           -Dxrootd=OFF \
           -Dbuiltin_xrootd=OFF \
-          -Dbuiltin_ftgl=ON \
-          -Dbuiltin_glew=ON \
-          -Dasimage=ON \
-          -Dgdml=ON \
-          -Dhttp=ON \
+          -Dbuiltin_ftgl=OFF \
+          -Dbuiltin_glew=OFF \
+          -Dasimage=OFF \
+          -Dgdml=OFF \
+          -Dhttp=OFF \
+          -Dwebgui=OFF \
           -Dvc=OFF \
           -Dimt=ON \
           -Dccache=OFF \
-          -Dpyroot=ON \
           -DCMAKE_CXX_STANDARD=17 \
           -Dtesting=OFF \
-          -Droot7=ON \
-          -Dwebgui=ON \
-          -Dopengl=ON \
+          -Droot7=OFF \
+          -Dopengl=OFF \
           -Dbuiltin_tbb=OFF \
-          -Dtbb=ON \
+          -Dtbb=OFF \
+          -Dgminimal=ON \
+          -Dsoversion=OFF \
+          -Dshadowpw=OFF \
+          -Dvdt=OFF \
+          -Dspectrum=OFF \
+          -Dunuran=OFF \
+          -Dtable=OFF \
+          -Dgfal=OFF \
+          -Ddavix=OFF \
+          -Dfftw3=OFF \
+          -Dfitsio=OFF \
+          -Dfortran=OFF \
+          -Dmlp=OFF \
+          -Dminuit2=OFF \
+          -Dmysql=OFF \
+          -Doracle=OFF \
+          -Dpgsql=OFF \
+          -Dpythia6=OFF \
+          -Dpythia8=OFF \
+          -Drpath=OFF \
+          -Drfio=OFF \
+          -Dsqlite=OFF \
           -Dcuda=OFF \
           -Dcudnn=OFF \
           -GNinja"
 
-        # Add version-specific flags
+        # Version specific flags
         VERSION_SPECIFIC_FLAGS=""
-        
-        # Version specific flags for different ROOT versions
         if [[ $ROOT_MINOR -lt 30 ]]; then
           VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl_shared=ON"
         else
           VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl=ON"
         fi
         
-        # Add builtin_afterimage only for versions < 6.34
         if [[ $ROOT_MINOR -lt 34 ]]; then
-          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dbuiltin_afterimage=ON"
+          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dbuiltin_afterimage=OFF"
         fi
 
-        # Configure with all flags
+        # Configure with optimized flags
         cmake ../root-${{ matrix.root-version }} ${COMMON_CMAKE_FLAGS} ${VERSION_SPECIFIC_FLAGS}
         
-        # Build using Ninja with error handling
-        ninja -j$(nproc) || {
+        # Build with optimal jobs
+        ninja -j$NUM_JOBS || {
           echo "Build failed. Checking error logs..."
           if [ -f "CMakeFiles/CMakeError.log" ]; then
             echo "CMake Error Log:"
@@ -137,20 +166,50 @@ jobs:
           exit 1
         }
         
-    - name: Package ROOT
-      if: success() # Only run if build succeeded
+    - name: Strip binaries
+      run: |
+        cd root-build
+        find . -type f -executable -exec strip --strip-all {} + || true
+        
+    - name: Package ROOT with maximum compression
       timeout-minutes: 30
       run: |
         cd root-build
         source ../venv/bin/activate
         sudo ninja install
-        # Create package in dedicated artifacts directory
         mkdir -p /home/runner/artifacts
-        sudo tar czf /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz -C /usr/local .
+        # Use maximum XZ compression
+        sudo tar cJf /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz -C /usr/local . --transform='s,^./,,' --options xz:compression-level=9
         
+    - name: Check package size
+      run: |
+        ls -lh /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
+
+    - name: Check existing release
+      id: check_release
+      if: success()
+      run: |
+        # Try to get release info
+        RELEASE_TAG="v${{ matrix.root-version }}-py${{ matrix.python-version }}"
+        RELEASE_INFO=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/tags/${RELEASE_TAG}" || echo "")
+        
+        if [ -n "$RELEASE_INFO" ] && [ "$(echo $RELEASE_INFO | jq -r '.message')" != "Not Found" ]; then
+          RELEASE_ID=$(echo $RELEASE_INFO | jq -r '.id')
+          echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
+          echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+          # Delete existing assets
+          for asset_id in $(echo $RELEASE_INFO | jq -r '.assets[].id'); do
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
+          done
+        else
+          echo "RELEASE_EXISTS=false" >> $GITHUB_ENV
+        fi
+
     - name: Create Release
       id: create_release
-      if: success() # Only run if previous steps succeeded
+      if: success() && env.RELEASE_EXISTS != 'true'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,20 +218,30 @@ jobs:
         release_name: ROOT v${{ matrix.root-version }} for Python ${{ matrix.python-version }}
         draft: false
         prerelease: false
-        
+
+    - name: Get Release Upload URL
+      id: get_upload_url
+      if: success()
+      run: |
+        if [ "${{ env.RELEASE_EXISTS }}" = "true" ]; then
+          echo "UPLOAD_URL=https://uploads.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}/assets{?name,label}" >> $GITHUB_ENV
+        else
+          echo "UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
+        fi
+
     - name: Upload Release Asset
-      if: success() && steps.create_release.conclusion == 'success'
+      if: success()
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
-        asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.gz
-        asset_content_type: application/gzip
+        upload_url: ${{ env.UPLOAD_URL }}
+        asset_path: /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
+        asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
+        asset_content_type: application/x-xz
 
     - name: Upload Build Logs
-      if: always() # Run regardless of previous step status
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: build-logs-root${{ matrix.root-version }}-python${{ matrix.python-version }}
