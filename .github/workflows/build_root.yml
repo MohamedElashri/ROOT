@@ -178,8 +178,8 @@ jobs:
         source ../venv/bin/activate
         sudo ninja install
         mkdir -p /home/runner/artifacts
-        # Use maximum XZ compression
-        sudo tar cJf /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz -C /usr/local . --transform='s,^./,,' --options xz:compression-level=9
+        # First create tar, then compress with xz separately using maximum compression
+        sudo tar cf - -C /usr/local . --transform='s,^./,,' | xz -9e > /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz 
         
     - name: Check package size
       run: |
