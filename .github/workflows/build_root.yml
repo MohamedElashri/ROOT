@@ -1,6 +1,7 @@
 name: Build ROOT for Multiple Python and ROOT Versions
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
@@ -79,6 +80,8 @@ jobs:
         # Install ROOT into a dedicated folder (root_build) within the workspace.
         COMMON_CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/root_build \
           -DCMAKE_BUILD_TYPE=MinSizeRel \
+          -DCMAKE_INSTALL_RPATH=\$ORIGIN/../lib \
+          -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
           -DPYTHON_EXECUTABLE=$PYTHON_PATH \
           -DPython3_ROOT_DIR=$(dirname $(dirname $PYTHON_PATH)) \
           -DPython3_EXECUTABLE=$PYTHON_PATH \
