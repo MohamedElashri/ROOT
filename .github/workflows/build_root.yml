@@ -11,8 +11,14 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 20G
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      DEBIAN_FRONTEND: noninteractive
     strategy:
-      fail-fast: true  # Stop all builds if one fails
+      fail-fast: false  # Continue other builds even if one fails
+      max-parallel: 1   # Run builds sequentially to avoid resource conflicts
       matrix:
         root-version: ['6.28.04', '6.30.04', '6.32.04']
         python-version: ['3.11']
@@ -23,7 +29,16 @@ jobs:
     - name: Set up environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y curl jq
+        sudo apt-get install -y curl jq ccache
+        # Set up ccache
+        ccache --max-size=20G
+        ccache --set-config=compression=true
+        ccache --set-config=compression_level=6
+        
+        # Increase system limits
+        sudo sysctl -w vm.max_map_count=262144
+        sudo sysctl -w fs.file-max=65536
+        ulimit -n 4096
 
     - name: Check if release exists
       id: check_release
@@ -84,3 +99,19 @@ jobs:
         asset_path: ./artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.zip
         asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.zip
         asset_content_type: application/zip
+
+  # Summary job that runs after all builds
+  build-summary:
+    needs: build-and-release
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check build matrix status
+        run: |
+          if [[ "${{ needs.build-and-release.result }}" == "success" ]]; then
+            echo "All builds completed successfully!"
+            exit 0
+          else
+            echo "Some builds failed. Check the build matrix for details."
+            exit 1
+          fi
