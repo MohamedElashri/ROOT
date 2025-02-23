@@ -1,7 +1,6 @@
 name: Build ROOT for Multiple Python and ROOT Versions
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
@@ -12,17 +11,16 @@ jobs:
       matrix:
         python-version: ['3.11']
         root-version: ['6.30.04', '6.32.04']
-        
     continue-on-error: true
-        
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        
+
     - name: Setup Python environment
       run: |
         python -m venv venv
@@ -44,44 +42,42 @@ jobs:
           libgsl-dev gfortran tar wget \
           ninja-build \
           python3-numpy \
-          libgsl-dev jq \
-          
+          libgsl-dev jq
+
     - name: Download and extract ROOT source
       timeout-minutes: 30
       run: |
         wget https://root.cern/download/root_v${{ matrix.root-version }}.source.tar.gz
         tar -xzvf root_v${{ matrix.root-version }}.source.tar.gz
-        
+
     - name: Configure and build ROOT
       timeout-minutes: 120
       run: |
         mkdir root-build
         cd root-build
         source ../venv/bin/activate
-        
-        # Get system information
+
         echo "CPU Information:"
         lscpu
         echo "Memory Information:"
         free -h
-        
-        # Calculate optimal number of jobs for ninja
+
         TOTAL_MEM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
         TOTAL_MEM_GB=$((TOTAL_MEM_KB/1024/1024))
         MAX_JOBS_BY_MEM=$((TOTAL_MEM_GB/4))
         NUM_CORES=$(nproc)
         NUM_JOBS=$(( MAX_JOBS_BY_MEM < NUM_CORES ? MAX_JOBS_BY_MEM : NUM_CORES ))
         NUM_JOBS=$(( NUM_JOBS > 0 ? NUM_JOBS : 1 ))
-        
+
         echo "Building with $NUM_JOBS parallel jobs"
-        
+
         ROOT_VERSION="${{ matrix.root-version }}"
         ROOT_MAJOR=$(echo $ROOT_VERSION | cut -d. -f1)
         ROOT_MINOR=$(echo $ROOT_VERSION | cut -d. -f2)
         ROOT_PATCH=$(echo $ROOT_VERSION | cut -d. -f3)
-        
-        # Optimized CMake flags for smaller build
-        COMMON_CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=/usr/local \
+
+        # Install ROOT into a dedicated folder (root_build) within the workspace.
+        COMMON_CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/root_build \
           -DCMAKE_BUILD_TYPE=MinSizeRel \
           -DPYTHON_EXECUTABLE=$PYTHON_PATH \
           -DPython3_ROOT_DIR=$(dirname $(dirname $PYTHON_PATH)) \
@@ -136,24 +132,21 @@ jobs:
           -Dsqlite=OFF \
           -Dcuda=OFF \
           -Dcudnn=OFF \
+          -DBUILD_SHARED_LIBS=ON \
           -GNinja"
 
-        # Version specific flags
         VERSION_SPECIFIC_FLAGS=""
         if [[ $ROOT_MINOR -lt 30 ]]; then
           VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl_shared=ON"
         else
           VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl=ON"
         fi
-        
+
         if [[ $ROOT_MINOR -lt 34 ]]; then
           VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dbuiltin_afterimage=OFF"
         fi
 
-        # Configure with optimized flags
         cmake ../root-${{ matrix.root-version }} ${COMMON_CMAKE_FLAGS} ${VERSION_SPECIFIC_FLAGS}
-        
-        # Build with optimal jobs
         ninja -j$NUM_JOBS || {
           echo "Build failed. Checking error logs..."
           if [ -f "CMakeFiles/CMakeError.log" ]; then
@@ -162,22 +155,16 @@ jobs:
           fi
           exit 1
         }
-        
-    - name: Strip binaries
-      run: |
-        cd root-build
-        find . -type f -executable -exec strip --strip-all {} + || true
-        
+
     - name: Package ROOT with maximum compression
-      # timeout-minutes: 30
       run: |
         cd root-build
         source ../venv/bin/activate
-        sudo ninja install
+        ninja install
         mkdir -p /home/runner/artifacts
-        # First create tar, then compress with xz separately using maximum compression
-        sudo tar cf - -C /usr/local . --transform='s,^./,,' | xz -9e > /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz 
-        
+        # Package only the installed ROOT files (with shared libs) from the dedicated folder.
+        tar cf - -C $GITHUB_WORKSPACE/root_build . --transform='s,^,root_build/,' | xz -9e > /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
+
     - name: Check package size
       run: |
         ls -lh /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
@@ -186,16 +173,13 @@ jobs:
       id: check_release
       if: success()
       run: |
-        # Try to get release info
         RELEASE_TAG="v${{ matrix.root-version }}-py${{ matrix.python-version }}"
         RELEASE_INFO=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/releases/tags/${RELEASE_TAG}" || echo "")
-        
         if [ -n "$RELEASE_INFO" ] && [ "$(echo $RELEASE_INFO | jq -r '.message')" != "Not Found" ]; then
           RELEASE_ID=$(echo $RELEASE_INFO | jq -r '.id')
           echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
           echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
-          # Delete existing assets
           for asset_id in $(echo $RELEASE_INFO | jq -r '.assets[].id'); do
             curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
