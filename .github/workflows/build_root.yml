@@ -1,225 +1,86 @@
-name: Build ROOT for Multiple Python and ROOT Versions
+name: Build and Release ROOT
 
 on:
-  push:
   workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'build_root.sh'
+      - '.github/workflows/build.yml'
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true  # Stop all builds if one fails
       matrix:
+        root-version: ['6.28.04', '6.30.04', '6.32.04']
         python-version: ['3.11']
-        root-version: ['6.30.04', '6.32.04']
-    continue-on-error: true
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Setup Python environment
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-        python -m pip install --upgrade pip
-        python -m pip install numpy
-        echo "PYTHON_PATH=$(which python)" >> $GITHUB_ENV
-        echo "PYTHON_LIBRARY=$(python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") + "/lib" + sysconfig.get_config_var("LDLIBRARY"))')" >> $GITHUB_ENV
-        echo "PYTHON_INCLUDE_DIR=$(python -c 'import sysconfig; print(sysconfig.get_config_var("INCLUDEPY"))')" >> $GITHUB_ENV
-        echo "NUMPY_INCLUDE_DIR=$(python -c 'import numpy; print(numpy.get_include())')" >> $GITHUB_ENV
-
-    - name: Install minimal system dependencies
+    - name: Set up environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          dpkg-dev cmake g++ gcc binutils \
-          libx11-dev libxpm-dev libxft-dev libxext-dev \
-          libssl-dev libpcre3-dev \
-          libgsl-dev gfortran tar wget \
-          ninja-build \
-          python3-numpy \
-          libgsl-dev jq
+        sudo apt-get install -y curl jq
 
-    - name: Download and extract ROOT source
-      timeout-minutes: 30
-      run: |
-        wget https://root.cern/download/root_v${{ matrix.root-version }}.source.tar.gz
-        tar -xzvf root_v${{ matrix.root-version }}.source.tar.gz
-
-    - name: Configure and build ROOT
-      timeout-minutes: 120
-      run: |
-        mkdir root-build
-        cd root-build
-        source ../venv/bin/activate
-
-        echo "CPU Information:"
-        lscpu
-        echo "Memory Information:"
-        free -h
-
-        TOTAL_MEM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
-        TOTAL_MEM_GB=$((TOTAL_MEM_KB/1024/1024))
-        MAX_JOBS_BY_MEM=$((TOTAL_MEM_GB/4))
-        NUM_CORES=$(nproc)
-        NUM_JOBS=$(( MAX_JOBS_BY_MEM < NUM_CORES ? MAX_JOBS_BY_MEM : NUM_CORES ))
-        NUM_JOBS=$(( NUM_JOBS > 0 ? NUM_JOBS : 1 ))
-
-        echo "Building with $NUM_JOBS parallel jobs"
-
-        ROOT_VERSION="${{ matrix.root-version }}"
-        ROOT_MAJOR=$(echo $ROOT_VERSION | cut -d. -f1)
-        ROOT_MINOR=$(echo $ROOT_VERSION | cut -d. -f2)
-        ROOT_PATCH=$(echo $ROOT_VERSION | cut -d. -f3)
-
-        # Install ROOT into a dedicated folder (root_build) within the workspace.
-        COMMON_CMAKE_FLAGS="-DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/root_build \
-          -DCMAKE_BUILD_TYPE=MinSizeRel \
-          -DCMAKE_INSTALL_RPATH=\$ORIGIN/../lib \
-          -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
-          -DPYTHON_EXECUTABLE=$PYTHON_PATH \
-          -DPython3_ROOT_DIR=$(dirname $(dirname $PYTHON_PATH)) \
-          -DPython3_EXECUTABLE=$PYTHON_PATH \
-          -DPython3_LIBRARY=$PYTHON_LIBRARY \
-          -DPython3_INCLUDE_DIR=$PYTHON_INCLUDE_DIR \
-          -DPython3_NumPy_INCLUDE_DIRS=$NUMPY_INCLUDE_DIR \
-          -Dpyroot=ON \
-          -Dmathmore=ON \
-          -Droofit=ON \
-          -Dthread=ON \
-          -Dssl=ON \
-          -Dxml=ON \
-          -Dxrootd=OFF \
-          -Dbuiltin_xrootd=OFF \
-          -Dbuiltin_ftgl=OFF \
-          -Dbuiltin_glew=OFF \
-          -Dasimage=OFF \
-          -Dgdml=OFF \
-          -Dhttp=OFF \
-          -Dwebgui=OFF \
-          -Dvc=OFF \
-          -Dimt=ON \
-          -Dccache=OFF \
-          -DCMAKE_CXX_STANDARD=17 \
-          -Dtesting=OFF \
-          -Droot7=OFF \
-          -Dopengl=OFF \
-          -Dbuiltin_tbb=OFF \
-          -Dtbb=OFF \
-          -Dgminimal=ON \
-          -Dsoversion=OFF \
-          -Dshadowpw=OFF \
-          -Dvdt=OFF \
-          -Dspectrum=OFF \
-          -Dunuran=OFF \
-          -Dtable=OFF \
-          -Dgfal=OFF \
-          -Ddavix=OFF \
-          -Dfftw3=OFF \
-          -Dfitsio=OFF \
-          -Dfortran=OFF \
-          -Dmlp=OFF \
-          -Dminuit2=OFF \
-          -Dmysql=OFF \
-          -Doracle=OFF \
-          -Dpgsql=OFF \
-          -Dpythia6=OFF \
-          -Dpythia8=OFF \
-          -Drpath=OFF \
-          -Drfio=OFF \
-          -Dsqlite=OFF \
-          -Dcuda=OFF \
-          -Dcudnn=OFF \
-          -DBUILD_SHARED_LIBS=ON \
-          -GNinja"
-
-        VERSION_SPECIFIC_FLAGS=""
-        if [[ $ROOT_MINOR -lt 30 ]]; then
-          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl_shared=ON"
-        else
-          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dgsl=ON"
-        fi
-
-        if [[ $ROOT_MINOR -lt 34 ]]; then
-          VERSION_SPECIFIC_FLAGS="$VERSION_SPECIFIC_FLAGS -Dbuiltin_afterimage=OFF"
-        fi
-
-        cmake ../root-${{ matrix.root-version }} ${COMMON_CMAKE_FLAGS} ${VERSION_SPECIFIC_FLAGS}
-        ninja -j$NUM_JOBS || {
-          echo "Build failed. Checking error logs..."
-          if [ -f "CMakeFiles/CMakeError.log" ]; then
-            echo "CMake Error Log:"
-            cat CMakeFiles/CMakeError.log
-          fi
-          exit 1
-        }
-
-    - name: Package ROOT with maximum compression
-      run: |
-        cd root-build
-        source ../venv/bin/activate
-        ninja install
-        mkdir -p /home/runner/artifacts
-        # Package only the installed ROOT files (with shared libs) from the dedicated folder.
-        tar cf - -C $GITHUB_WORKSPACE/root_build . --transform='s,^,root_build/,' | xz -9e > /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
-
-    - name: Check package size
-      run: |
-        ls -lh /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
-
-    - name: Check existing release
+    - name: Check if release exists
       id: check_release
-      if: success()
       run: |
-        RELEASE_TAG="v${{ matrix.root-version }}-py${{ matrix.python-version }}"
-        RELEASE_INFO=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/releases/tags/${RELEASE_TAG}" || echo "")
-        if [ -n "$RELEASE_INFO" ] && [ "$(echo $RELEASE_INFO | jq -r '.message')" != "Not Found" ]; then
-          RELEASE_ID=$(echo $RELEASE_INFO | jq -r '.id')
+        ROOT_VERSION=${{ matrix.root-version }}
+        RELEASE_TAG="root-v${ROOT_VERSION}-python${{ matrix.python-version }}"
+        
+        # Check if release exists
+        RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/tags/${RELEASE_TAG}" | \
+          jq -r '.id // empty')
+        
+        if [ ! -z "$RELEASE_ID" ]; then
           echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
           echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
-          for asset_id in $(echo $RELEASE_INFO | jq -r '.assets[].id'); do
-            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
-          done
         else
           echo "RELEASE_EXISTS=false" >> $GITHUB_ENV
         fi
 
+    - name: Delete existing release if it exists
+      if: env.RELEASE_EXISTS == 'true'
+      run: |
+        curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}"
+        
+        # Delete the tag
+        git push --delete origin "root-v${{ matrix.root-version }}-python${{ matrix.python-version }}" || true
+
+    - name: Build ROOT
+      run: |
+        chmod +x build_root.sh
+        ./build_root.sh ${{ matrix.python-version }} ${{ matrix.root-version }}
+
     - name: Create Release
       id: create_release
-      if: success() && env.RELEASE_EXISTS != 'true'
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ matrix.root-version }}-py${{ matrix.python-version }}
+        tag_name: root-v${{ matrix.root-version }}-python${{ matrix.python-version }}
         release_name: ROOT v${{ matrix.root-version }} for Python ${{ matrix.python-version }}
+        body: |
+          Automated build of ROOT v${{ matrix.root-version }} for Python ${{ matrix.python-version }}
+          
+          This release contains:
+          - ROOT version: ${{ matrix.root-version }}
+          - Python version: ${{ matrix.python-version }}
+          - Built on Ubuntu latest
         draft: false
         prerelease: false
 
-    - name: Get Release Upload URL
-      id: get_upload_url
-      if: success()
-      run: |
-        if [ "${{ env.RELEASE_EXISTS }}" = "true" ]; then
-          echo "UPLOAD_URL=https://uploads.github.com/repos/${{ github.repository }}/releases/${{ env.RELEASE_ID }}/assets{?name,label}" >> $GITHUB_ENV
-        else
-          echo "UPLOAD_URL=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_ENV
-        fi
-
     - name: Upload Release Asset
-      if: success()
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ env.UPLOAD_URL }}
-        asset_path: /home/runner/artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
-        asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.tar.xz
-        asset_content_type: application/x-xz
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.zip
+        asset_name: root_v${{ matrix.root-version }}_Ubuntu_Python${{ matrix.python-version }}.zip
+        asset_content_type: application/zip
