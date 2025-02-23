@@ -66,6 +66,7 @@ info "Using ${CORES_TO_USE} cores for building."
 info "Adding additional repositories..."
 sudo add-apt-repository -y universe
 sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo add-apt-repository -y ppa:deadsnakes/ppa
 
 # Install dependencies
 info "Installing required dependencies..."
