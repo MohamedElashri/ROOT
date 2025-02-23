@@ -16,13 +16,6 @@ Each ROOT version is built for Python versions:
 - Python 3.11
 - Python 3.12
 
-## 📊 Version Compatibility Matrix
-
-| Colab Python Version | Recommended ROOT Version | Download Link Template |
-|---------------------|-------------------------|----------------------|
-| 3.11 | 6.32.04 | `root_v6.32.04_Ubuntu_Python3.11.zip` |
-| 3.12 | 6.32.04 | `root_v6.32.04_Ubuntu_Python3.12.zip` |
-
 ## 📥 Available Downloads
 
 | ROOT Version | Python Version | Download Link |
