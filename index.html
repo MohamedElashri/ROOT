@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pre-built ROOT binaries optimized for Google Colab environments. Download ready-to-use ROOT installations for seamless integration with your Colab notebooks.">
+    <meta name="keywords" content="ROOT CERN, Google Colab, Python, Data Analysis, High Energy Physics, Scientific Computing, ROOT Framework">
+    <meta name="author" content="Mohamed Elashri">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://melashri.net/ROOT/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://melashri.net/ROOT/">
+    <meta property="og:title" content="ROOT for Google Colab - Optimized Binaries">
+    <meta property="og:description" content="Pre-built ROOT binaries optimized for Google Colab environments. Download ready-to-use ROOT installations for seamless integration with your Colab notebooks.">
+        
+    <title>ROOT for Google Colab</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        function copyToClipboard(button, codeElement) {
+            const code = codeElement.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.classList.add('copied');
+                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy`;
+                }, 2000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.code-block pre').forEach(pre => {
+                const button = document.createElement('button');
+                button.className = 'copy-button';
+                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy`;
+                button.onclick = () => copyToClipboard(button, pre.querySelector('code'));
+                pre.parentNode.insertBefore(button, pre);
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+
+        <header>
+            <h1><a href="." style="text-decoration: none; color: inherit;">ROOT for Google Colab</a></h1>
+            <p class="subtitle">Pre-built ROOT binaries optimized for Google Colab environments</p>
+            <a href="https://colab.research.google.com/drive/173ogdLQGCc8O9wIro_oUzS4SzjvgFztw?usp=sharing" class="try-colab-button" target="_blank">📓 Try Example Notebook</a>
+        </header>
+
+    <main>
+        <section id="purpose">
+            <h2>📚 Introduction</h2>
+            <p>Setting up ROOT in Google Colab has traditionally been a time-consuming process that can take hours away from your valuable research time. This project eliminates these installation hurdles by providing ready-to-use, optimized ROOT binaries that work seamlessly with Colab's environment.</p>
+            
+            <p>Instead of wrestling with build configurations or waiting for lengthy compilations, you can now have ROOT up and running in your Colab notebook within seconds. The project pre-built binaries are automatically maintained to stay compatible with Colab's Python versions and include all commonly used features while maintaining optimal performance.</p>
+        </section>
+
+        <section id="available-builds">
+            <h2>🔧 Available Builds</h2>
+            <div class="version-grid">
+                <div class="version-card">
+                    <h3>ROOT 6.30.04</h3>
+                    <ul>
+                        <li><a href="https://github.com/MohamedElashri/ROOT/releases/download/root-v6.30.04-python3.11/root_v6.30.04_Ubuntu_Python3.11.zip">Python 3.11</a></li>
+                        <li><a href="https://github.com/MohamedElashri/ROOT/releases/download/root-v6.30.04-python3.12/root_v6.30.04_Ubuntu_Python3.12.zip">Python 3.12</a></li>
+                    </ul>
+                </div>
+                <div class="version-card">
+                    <h3>ROOT 6.32.04</h3>
+                    <ul>
+                        <li><a href="https://github.com/MohamedElashri/ROOT/releases/download/root-v6.32.04-python3.11/root_v6.32.04_Ubuntu_Python3.11.zip">Python 3.11</a></li>
+                        <li><a href="https://github.com/MohamedElashri/ROOT/releases/download/root-v6.32.04-python3.12/root_v6.32.04_Ubuntu_Python3.12.zip">Python 3.12</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <h2>🛠 Build Features</h2>
+            <div class="features-grid">
+                <div class="feature-column">
+                    <h3>Included Components</h3>
+                    <ul class="feature-list included">
+                        <li>✅ Python bindings (PyROOT)</li>
+                        <li>✅ RooFit statistical analysis package</li>
+                        <li>✅ MathMore libraries</li>
+                        <li>✅ Multithreading support (IMT)</li>
+                        <li>✅ SSL and XML support</li>
+                        <li>✅ XRootD support (built-in)</li>
+                        <li>✅ ROOT 7 features</li>
+                        <li>✅ 3D Graphics (graf3d)</li>
+                        <li>✅ PYTHIA8 integration</li>
+                        <li>✅ Fortran support</li>
+                        <li>✅ Thread support</li>
+                    </ul>
+                </div>
+                <div class="feature-column">
+                    <h3>Excluded</h3>
+                    <ul class="feature-list excluded">
+                        <li>❌ OpenGL support</li>
+                        <li>❌ Vector Detection Technology (VDT)</li>
+                        <li>❌ SQLite support</li>
+                        <li>❌ GDML support</li>
+                        <li>❌ Davix</li>
+                        <li>❌ FITS I/O</li>
+                        <li>❌ Table support</li>
+                        <li>❌ Testing modules</li>
+                        <li>❌ Debug symbols</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="quick-start">
+            <h2>🚀 Detailed Usage Guide</h2>
+            <div class="code-blocks">
+                <div class="code-block">
+                    <h3>1. Initial Setup</h3>
+                    <pre><code class="language-python"># Check Python version and install ROOT
+!python --version
+
+# Step 1: Download the pre-built ROOT tarball from GitHub Releases
+!wget -q --show-progress https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04_python11/root_v6.30.04_Ubuntu_Python3.11.zip
+
+# Step 2: Extract the ROOT files
+!unzip -q root_v6.30.04_Ubuntu_Python3.11.zip
+
+# Step 3: Install missing system dependencies for ROOT
+!sudo ldconfig & apt-get install -y git dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev tar gfortran subversion libpython3.11-dev
+
+# Step 4: Remove the tarball to free up space
+!rm -f root_v6.30.04_Ubuntu_Python3.11.zip
+
+# Step 5: Install Compatible libssl
+!wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+# Step 6: Configure Python paths and load libraries
+import sys
+import ctypes
+
+# Append ROOT paths to Python
+sys.path.append("root_build/")
+sys.path.append("root_build/bin/")
+sys.path.append("root_build/include/")
+sys.path.append("root_build/lib/")
+
+# Load the required shared libraries (.so files)
+ctypes.cdll.LoadLibrary("root_build/lib/libCore.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libThread.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libTreePlayer.so")
+
+print("ROOT Libraries Loaded Successfully!")</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <h3>2. Basic Data Analysis</h3>
+                    <pre><code class="language-python"># Create and fill a histogram
+import ROOT
+
+# Create a 1D histogram
+h1 = ROOT.TH1F("h1", "Gaussian Distribution;X;Entries", 100, -5, 5)
+
+# Fill with random numbers
+for i in range(10000):
+    h1.Fill(ROOT.gRandom.Gaus(0, 1))
+
+# Customize appearance
+h1.SetLineColor(ROOT.kBlue)
+h1.SetFillColor(ROOT.kBlue - 10)
+
+# Draw and save
+c1 = ROOT.TCanvas("c1", "Canvas", 800, 600)
+h1.Draw("hist")
+c1.Draw()</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <h3>3. Data Fitting</h3>
+                    <pre><code class="language-python"># Create a more complex example with fitting
+import ROOT
+import numpy as np
+
+# Create data with two peaks
+h2 = ROOT.TH1F("h2", "Double Gaussian;X;Entries", 100, -10, 10)
+
+# Fill with two Gaussians
+for i in range(5000):
+    h2.Fill(ROOT.gRandom.Gaus(-2, 1.5))
+for i in range(3000):
+    h2.Fill(ROOT.gRandom.Gaus(3, 0.8))
+
+# Define fit function
+fit_func = ROOT.TF1("fit_func", "gaus(0) + gaus(3)", -10, 10)
+fit_func.SetParameters(2000, -2, 1.5, 1000, 3, 0.8)
+
+# Perform fit
+h2.Fit(fit_func, "R")
+
+# Draw results
+c2 = ROOT.TCanvas("c2", "Fit Canvas", 800, 600)
+h2.Draw()
+c2.Draw()</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <h3>4. Advanced Visualization</h3>
+                    <pre><code class="language-python"># Create a 2D histogram
+h3 = ROOT.TH2F("h3", "2D Gaussian;X;Y", 50, -5, 5, 50, -5, 5)
+
+# Fill with correlated random numbers
+for i in range(50000):
+    x = ROOT.gRandom.Gaus(0, 1)
+    y = ROOT.gRandom.Gaus(0.5 * x, 0.5)
+    h3.Fill(x, y)
+
+# Create canvas and draw
+c3 = ROOT.TCanvas("c3", "2D Canvas", 800, 800)
+
+# Set color scheme and draw options
+ROOT.gStyle.SetPalette(ROOT.kBird)
+h3.Draw("colz")
+
+# Add color scale
+c3.SetRightMargin(0.15)
+c3.Draw()</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="known-issues">
+            <h2>⚠️ Known Issues</h2>
+            <div class="issues-list">
+                <div class="issue">
+                    <h3>SSL Certificate Issues</h3>
+                    <p>If you encounter SSL certificate validation errors when using ROOT in Google Colab, this typically occurs due to missing or outdated SSL libraries. You can resolve this by installing the required SSL package:</p>
+                    <pre><code class="language-python">!wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!rm libssl1.1_1.1.1f-1ubuntu2_amd64.deb</code></pre>
+                </div>
+                <div class="issue">
+                    <h3>Other Common Issues</h3>
+                    <ul>
+                        <li>If ROOT fails to import after installation, try restarting your Colab runtime</li>
+                        <li>If you need any of the excluded features, you will need to build ROOT with them</li>
+                        <li>Building ROOT in the same Colab runtime will take most of the runtime allocation time</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>© 2024 <a href="https://github.com/MohamedElashri/ROOT" target="_blank">Mohamed Elashri</a>. All rights reserved.</p>
+        </div>
+    </footer>
+
+
+
+</body>
+</html>
