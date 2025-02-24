@@ -39,7 +39,7 @@ Each ROOT version is built for Python versions:
 !python --version
 
 # Step 1: Download the pre-built ROOT tarball from GitHub Releases
-!wget -q --show-progress https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04_python11/root_v6.30.04_Ubuntu_Python3.11.zip
+!wget -q --show-progress https://github.com/MohamedElashri/ROOT/releases/download/ubuntu/root_v6.30.04_Ubuntu_Python3.11.zip
 
 # Step 2: Extract the ROOT files
 !unzip -q root_v6.30.04_Ubuntu_Python3.11.zip
@@ -89,17 +89,10 @@ Here's a complete example for current Colab (Python 3.11):
 # Check Python version and install ROOT
 !python --version
 
-# Step 1: Download the pre-built ROOT tarball from GitHub Releases
-!wget -q --show-progress https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04_python11/root_v6.30.04_Ubuntu_Python3.11.zip
-
-# Step 2: Extract the ROOT files
-!unzip -q root_v6.30.04_Ubuntu_Python3.11.zip
-
-# Step 3: Install missing system dependencies for ROOT
-!sudo ldconfig & apt-get install -y git dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev tar gfortran subversion libpython3.11-dev
-
-# Step 4: Remove the tarball to free up space
-!rm -f root_v6.30.04_Ubuntu_Python3.11.zip
+# Install ROOT
+!wget https://github.com/MohamedElashri/ROOT/releases/download/root-v6.32.04-python3.11/root_v6.32.04_Ubuntu_Python3.11.zip
+!unzip root_v6.32.04_Ubuntu_Python3.11.zip -d /usr/local
+!rm root_v6.32.04_Ubuntu_Python3.11.zip
 
 # Step 5: Install Compatible libssl
 !wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
