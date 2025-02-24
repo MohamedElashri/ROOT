@@ -547,3 +547,32 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+.try-colab-button {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: var(--accent-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid var(--accent-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
+.try-colab-button:hover {
+    background-color: transparent;
+    color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dark-theme .try-colab-button {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .try-colab-button:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
