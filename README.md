@@ -35,18 +35,44 @@ Each ROOT version is built for Python versions:
 2. Download and install the appropriate ROOT build:
 ```python
 # Example for Python 3.11 with ROOT 6.32.04
-!wget https://github.com/MohamedElashri/ROOT/releases/download/root-v6.32.04-python3.11/root_v6.32.04_Ubuntu_Python3.11.zip
-!unzip root_v6.32.04_Ubuntu_Python3.11.zip -d /usr/local
-!rm root_v6.32.04_Ubuntu_Python3.11.zip
+# Check Python version and install ROOT
+!python --version
+
+# Step 1: Download the pre-built ROOT tarball from GitHub Releases
+!wget -q --show-progress https://github.com/MohamedElashri/ROOT/releases/download/v6.32.04_python11/root_v6.30.04_Ubuntu_Python3.11.zip
+
+# Step 2: Extract the ROOT files
+!unzip -q root_v6.30.04_Ubuntu_Python3.11.zip
+
+# Step 3: Install missing system dependencies for ROOT
+!sudo ldconfig & apt-get install -y git dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev tar gfortran subversion libpython3.11-dev
+
+# Step 4: Remove the tarball to free up space
+!rm -f root_v6.30.04_Ubuntu_Python3.11.zip
+
+# Step 5: Install Compatible libssl
+!wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 ```
 
 3. Set up the environment:
 ```python
-import os
-os.environ['ROOTSYS'] = '/usr/local'
-os.environ['PATH'] = f"{os.environ['ROOTSYS']}/bin:" + os.environ['PATH']
-os.environ['LD_LIBRARY_PATH'] = f"{os.environ['ROOTSYS']}/lib:" + os.environ.get('LD_LIBRARY_PATH', '')
-os.environ['PYTHONPATH'] = f"{os.environ['ROOTSYS']}/lib:" + os.environ.get('PYTHONPATH', '')
+import sys
+import ctypes
+
+# Append ROOT paths to Python
+sys.path.append("root_build/")
+sys.path.append("root_build/bin/")
+sys.path.append("root_build/include/")
+sys.path.append("root_build/lib/")
+
+# Load the required shared libraries (.so files)
+ctypes.cdll.LoadLibrary("root_build/lib/libCore.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libThread.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libTreePlayer.so")
+
+print("ROOT Libraries Loaded Successfully!")
 ```
 
 4. Import ROOT and verify installation:
@@ -60,20 +86,42 @@ print(ROOT.gROOT.GetVersion())
 Here's a complete example for current Colab (Python 3.11):
 
 ```python
-# Check Python version
+# Check Python version and install ROOT
 !python --version
 
-# Install ROOT
-!wget https://github.com/MohamedElashri/ROOT/releases/download/root-v6.32.04-python3.11/root_v6.32.04_Ubuntu_Python3.11.zip
-!unzip root_v6.32.04_Ubuntu_Python3.11.zip -d /usr/local
-!rm root_v6.32.04_Ubuntu_Python3.11.zip
+# Step 1: Download the pre-built ROOT tarball from GitHub Releases
+!wget -q --show-progress https://github.com/MohamedElashri/ROOT/releases/download/v6.30.04_python11/root_v6.30.04_Ubuntu_Python3.11.zip
 
-# Set environment variables
-import os
-os.environ['ROOTSYS'] = '/usr/local'
-os.environ['PATH'] = f"{os.environ['ROOTSYS']}/bin:" + os.environ['PATH']
-os.environ['LD_LIBRARY_PATH'] = f"{os.environ['ROOTSYS']}/lib:" + os.environ.get('LD_LIBRARY_PATH', '')
-os.environ['PYTHONPATH'] = f"{os.environ['ROOTSYS']}/lib:" + os.environ.get('PYTHONPATH', '')
+# Step 2: Extract the ROOT files
+!unzip -q root_v6.30.04_Ubuntu_Python3.11.zip
+
+# Step 3: Install missing system dependencies for ROOT
+!sudo ldconfig & apt-get install -y git dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev tar gfortran subversion libpython3.11-dev
+
+# Step 4: Remove the tarball to free up space
+!rm -f root_v6.30.04_Ubuntu_Python3.11.zip
+
+# Step 5: Install Compatible libssl
+!wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+# Step 6: Configure Python paths and load libraries
+import sys
+import ctypes
+
+# Append ROOT paths to Python
+sys.path.append("root_build/")
+sys.path.append("root_build/bin/")
+sys.path.append("root_build/include/")
+sys.path.append("root_build/lib/")
+
+# Load the required shared libraries (.so files)
+ctypes.cdll.LoadLibrary("root_build/lib/libCore.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libThread.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libTreePlayer.so")
+
+print("ROOT Libraries Loaded Successfully!")
 
 # Import ROOT and create a simple histogram
 import ROOT
