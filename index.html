@@ -463,8 +463,57 @@ c3.Draw()</code></pre>
         selectedPythonVersion = pythonSelect.value;
     }
     
-    // Generate setup code based on selected versions
-    function generateSetupCode(rootVersion, pythonVersion, downloadUrl, fileName) {
+    // Helper to wrap dynamic values in highlight spans
+    function hl(value) {
+        return `<span class="code-highlight">${value}</span>`;
+    }
+    
+    // Generate setup code based on selected versions (with HTML highlighting)
+    function generateSetupCodeHTML(rootVersion, pythonVersion, downloadUrl, fileName) {
+        return `# Check Python version and install ROOT
+!python --version
+
+# Step 1: Download the pre-built ROOT tarball from GitHub Releases
+!wget -q --show-progress ${hl(downloadUrl)}
+
+# Step 2: Extract the ROOT files
+!unzip -q ${hl(fileName)}
+
+# Step 3: Install missing system dependencies for ROOT
+!sudo ldconfig
+!apt-get install -y \\
+    git dpkg-dev cmake g++ gcc binutils \\
+    libx11-dev libxpm-dev libxft-dev libxext-dev \\
+    tar gfortran subversion ${hl(`libpython${pythonVersion}-dev`)}
+
+# Step 4: Remove the tarball to free up space
+!rm -f ${hl(fileName)}
+
+# Step 5: Install Compatible libssl
+!wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+# Step 6: Configure Python paths and load libraries
+import sys
+import ctypes
+
+# Append ROOT paths to Python
+sys.path.append("root_build/")
+sys.path.append("root_build/bin/")
+sys.path.append("root_build/include/")
+sys.path.append("root_build/lib/")
+
+# Load the required shared libraries (.so files)
+ctypes.cdll.LoadLibrary("root_build/lib/libCore.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libThread.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libTreePlayer.so")
+
+print(${hl(`"ROOT ${rootVersion} with Python ${pythonVersion} Loaded Successfully!"`)})`;
+    }
+    
+    // Generate plain text version for copying
+    function generateSetupCodePlain(rootVersion, pythonVersion, downloadUrl, fileName) {
         return `# Check Python version and install ROOT
 !python --version
 
@@ -475,7 +524,11 @@ c3.Draw()</code></pre>
 !unzip -q ${fileName}
 
 # Step 3: Install missing system dependencies for ROOT
-!sudo ldconfig & apt-get install -y git dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev tar gfortran subversion libpython${pythonVersion}-dev
+!sudo ldconfig
+!apt-get install -y \\
+    git dpkg-dev cmake g++ gcc binutils \\
+    libx11-dev libxpm-dev libxft-dev libxext-dev \\
+    tar gfortran subversion libpython${pythonVersion}-dev
 
 # Step 4: Remove the tarball to free up space
 !rm -f ${fileName}
@@ -515,10 +568,27 @@ print("ROOT ${rootVersion} with Python ${pythonVersion} Loaded Successfully!")`;
         
         const setupCodeElement = document.getElementById('setup-code');
         const buildInfoElement = document.getElementById('selected-build-info');
+        const codeBlock = setupCodeElement.closest('.code-block');
+        
+        // Remove existing legend if present
+        const existingLegend = codeBlock.querySelector('.code-legend');
+        if (existingLegend) existingLegend.remove();
         
         if (build) {
-            const code = generateSetupCode(rootVersion, pythonVersion, build.downloadUrl, build.fileName);
-            setupCodeElement.textContent = code;
+            // Generate HTML version with highlights for display
+            const codeHTML = generateSetupCodeHTML(rootVersion, pythonVersion, build.downloadUrl, build.fileName);
+            // Generate plain version for copying (stored as data attribute)
+            const codePlain = generateSetupCodePlain(rootVersion, pythonVersion, build.downloadUrl, build.fileName);
+            
+            setupCodeElement.innerHTML = codeHTML;
+            setupCodeElement.dataset.plainCode = codePlain;
+            
+            // Add legend after the h3
+            const h3 = codeBlock.querySelector('h3');
+            const legend = document.createElement('div');
+            legend.className = 'code-legend';
+            legend.innerHTML = '<span class="code-legend-indicator">Highlighted values</span> change based on your version selection';
+            h3.insertAdjacentElement('afterend', legend);
             
             buildInfoElement.innerHTML = `
                 <div class="build-info-content">
@@ -537,6 +607,7 @@ print("ROOT ${rootVersion} with Python ${pythonVersion} Loaded Successfully!")`;
             buildInfoElement.style.display = 'block';
         } else {
             setupCodeElement.textContent = '# No build available for this combination.\n# Please select a different ROOT/Python version combination.';
+            setupCodeElement.dataset.plainCode = setupCodeElement.textContent;
             buildInfoElement.innerHTML = `
                 <div class="build-info-content warning">
                     <span class="warning-icon">⚠️</span>
@@ -546,18 +617,14 @@ print("ROOT ${rootVersion} with Python ${pythonVersion} Loaded Successfully!")`;
             buildInfoElement.style.display = 'block';
         }
         
-        // Re-apply syntax highlighting if Prism is available
-        if (typeof Prism !== 'undefined') {
-            Prism.highlightElement(setupCodeElement);
-        }
-        
         // Re-add copy button
         addCopyButtons();
     }
     
     // Copy to clipboard functionality
     function copyToClipboard(button, codeElement) {
-        const code = codeElement.textContent;
+        // Use plain code from data attribute if available (for highlighted code blocks)
+        const code = codeElement.dataset.plainCode || codeElement.textContent;
         navigator.clipboard.writeText(code).then(() => {
             button.classList.add('copied');
             button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
