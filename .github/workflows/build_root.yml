@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 20G
@@ -18,9 +18,9 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false  # Continue other builds even if one fails
-      max-parallel: 4   
+      max-parallel: 8   
       matrix:
-        root-version: ['6.30.04', '6.32.04']
+        root-version: ['6.30.04', '6.32.04', '6.34.10', '6.36.04']
         python-version: ['3.11', '3.12']
 
     steps:
