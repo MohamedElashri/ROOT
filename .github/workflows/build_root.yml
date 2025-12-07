@@ -6,7 +6,7 @@ on:
     branches: [ main ]
     paths:
       - 'build_root.sh'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/build_root.yml'
 
 jobs:
   build-and-release:
