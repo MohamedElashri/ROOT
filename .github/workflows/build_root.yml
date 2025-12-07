@@ -20,8 +20,8 @@ jobs:
       fail-fast: false  # Continue other builds even if one fails
       max-parallel: 8   
       matrix:
-        root-version: ['6.30.04', '6.32.04', '6.34.10', '6.36.04']
-        python-version: ['3.11', '3.12']
+        root-version: ['6.30.04', '6.32.04', '6.34.04', '6.36.04']
+        python-version: ['3.11', '3.12', '3.13']
 
     steps:
     - uses: actions/checkout@v3
