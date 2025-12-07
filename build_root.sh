@@ -51,6 +51,20 @@ if [[ ! $ROOT_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
+# Extract major and minor version for conditional feature handling
+ROOT_MAJOR=$(echo "$ROOT_VERSION" | cut -d. -f1)
+ROOT_MINOR=$(echo "$ROOT_VERSION" | cut -d. -f2)
+
+# builtin_afterimage was removed in ROOT 6.34
+# Only include it for versions < 6.34
+if [[ "$ROOT_MAJOR" -lt 6 ]] || [[ "$ROOT_MAJOR" -eq 6 && "$ROOT_MINOR" -lt 34 ]]; then
+    AFTERIMAGE_OPT="-Dbuiltin_afterimage=ON"
+    info "Including builtin_afterimage option (ROOT < 6.34)"
+else
+    AFTERIMAGE_OPT=""
+    info "Skipping builtin_afterimage option (removed in ROOT >= 6.34)"
+fi
+
 # Default: use all available cores
 DEFAULT_CORES=$(nproc)
 CORES_TO_USE=$DEFAULT_CORES
@@ -148,7 +162,7 @@ cmake ../root-${ROOT_VERSION} \
   -Dbuiltin_xrootd=ON \
   -Dbuiltin_ftgl=ON \
   -Dbuiltin_glew=ON \
-  -Dbuiltin_afterimage=ON \
+  ${AFTERIMAGE_OPT} \
   -Dbuiltin_ryml=ON \
   -Dbuiltin_vdt=OFF \
   -Dvdt=OFF \
