@@ -19,29 +19,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link rel="stylesheet" href="styles.css">
-    <script>
-        function copyToClipboard(button, codeElement) {
-            const code = codeElement.textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                button.classList.add('copied');
-                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
-                setTimeout(() => {
-                    button.classList.remove('copied');
-                    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy`;
-                }, 2000);
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.code-block pre').forEach(pre => {
-                const button = document.createElement('button');
-                button.className = 'copy-button';
-                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy`;
-                button.onclick = () => copyToClipboard(button, pre.querySelector('code'));
-                pre.parentNode.insertBefore(button, pre);
-            });
-        });
-    </script>
 </head>
 <body>
     <a href="https://github.com/MohamedElashri/ROOT" class="github-corner" aria-label="View source on GitHub">
@@ -76,21 +53,13 @@
 
         <section id="available-builds">
             <h2>🔧 Available Builds</h2>
-            <div class="version-grid">
-                <div class="version-card">
-                    <h3>ROOT 6.30.04</h3>
-                    <ul>
-                        <li><a href="https://github.com/MohamedElashri/ROOT/releases/download/root-v6.30.04-python3.11/root_v6.30.04_Ubuntu_Python3.11.zip">Python 3.11</a></li>
-                        <li><a href="https://github.com/MohamedElashri/ROOT/releases/download/root-v6.30.04-python3.12/root_v6.30.04_Ubuntu_Python3.12.zip">Python 3.12</a></li>
-                    </ul>
-                </div>
-                <div class="version-card">
-                    <h3>ROOT 6.32.04</h3>
-                    <ul>
-                        <li><a href="https://github.com/MohamedElashri/ROOT/releases/download/root-v6.32.04-python3.11/root_v6.32.04_Ubuntu_Python3.11.zip">Python 3.11</a></li>
-                        <li><a href="https://github.com/MohamedElashri/ROOT/releases/download/root-v6.32.04-python3.12/root_v6.32.04_Ubuntu_Python3.12.zip">Python 3.12</a></li>
-                    </ul>
-                </div>
+            <div id="loading-builds" class="loading-indicator">
+                <div class="spinner"></div>
+                <p>Loading available builds from GitHub...</p>
+            </div>
+            <div id="version-grid" class="version-grid"></div>
+            <div id="builds-error" class="error-message" style="display: none;">
+                <p>Unable to load builds from GitHub. Please check the <a href="https://github.com/MohamedElashri/ROOT/releases" target="_blank">releases page</a> directly.</p>
             </div>
         </section>
 
@@ -132,45 +101,32 @@
 
         <section id="quick-start">
             <h2>🚀 Detailed Usage Guide</h2>
+            
+            <!-- Version Selector -->
+            <div class="version-selector">
+                <h3>Select Your Configuration</h3>
+                <p class="selector-description">Choose your ROOT and Python version combination. The code examples below will update automatically.</p>
+                <div class="selector-controls">
+                    <div class="selector-group">
+                        <label for="root-version-select">ROOT Version:</label>
+                        <select id="root-version-select" class="version-select">
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                    <div class="selector-group">
+                        <label for="python-version-select">Python Version:</label>
+                        <select id="python-version-select" class="version-select">
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="selected-build-info" class="selected-build-info"></div>
+            </div>
+
             <div class="code-blocks">
                 <div class="code-block">
                     <h3>1. Initial Setup</h3>
-                    <pre><code class="language-python"># Check Python version and install ROOT
-!python --version
-
-# Step 1: Download the pre-built ROOT tarball from GitHub Releases
-!wget -q --show-progress https://github.com/MohamedElashri/ROOT/releases/download/ubuntu/root_v6.30.04_Ubuntu_Python3.11.zip
-
-# Step 2: Extract the ROOT files
-!unzip -q root_v6.30.04_Ubuntu_Python3.11.zip
-
-# Step 3: Install missing system dependencies for ROOT
-!sudo ldconfig & apt-get install -y git dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev tar gfortran subversion libpython3.11-dev
-
-# Step 4: Remove the tarball to free up space
-!rm -f root_v6.30.04_Ubuntu_Python3.11.zip
-
-# Step 5: Install Compatible libssl
-!wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-!sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-!rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-
-# Step 6: Configure Python paths and load libraries
-import sys
-import ctypes
-
-# Append ROOT paths to Python
-sys.path.append("root_build/")
-sys.path.append("root_build/bin/")
-sys.path.append("root_build/include/")
-sys.path.append("root_build/lib/")
-
-# Load the required shared libraries (.so files)
-ctypes.cdll.LoadLibrary("root_build/lib/libCore.so")
-ctypes.cdll.LoadLibrary("root_build/lib/libThread.so")
-ctypes.cdll.LoadLibrary("root_build/lib/libTreePlayer.so")
-
-print("ROOT Libraries Loaded Successfully!")</code></pre>
+                    <pre><code id="setup-code" class="language-python"># Loading configuration...</code></pre>
                 </div>
 
                 <div class="code-block">
@@ -272,11 +228,408 @@ c3.Draw()</code></pre>
 
     <footer>
         <div class="footer-content">
-            <p> 2024 <a href="https://github.com/MohamedElashri/ROOT" target="_blank">Mohamed Elashri</a>. All rights reserved.</p>
+            <p>&copy; 2024 <a href="https://github.com/MohamedElashri/ROOT" target="_blank">Mohamed Elashri</a>. All rights reserved.</p>
         </div>
     </footer>
 
+    <script>
+    // ============================================
+    // ROOT for Colab - Dynamic Release Manager
+    // ============================================
+    
+    const GITHUB_REPO = 'MohamedElashri/ROOT';
+    const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/releases`;
+    
+    // Global state
+    let availableBuilds = [];
+    let selectedRootVersion = null;
+    let selectedPythonVersion = null;
+    
+    // Parse asset filename to extract version info
+    // Handles formats like: root_v6.30.04_Ubuntu_Python3.11.zip, root_v6.28.04_Ubuntu_20.04.zip
+    function parseAssetName(assetName, downloadUrl, tagName) {
+        const patterns = [
+            // Pattern: root_v6.30.04_Ubuntu_Python3.11.zip
+            /root_v([\d.]+)_Ubuntu_Python([\d.]+)\.zip/i,
+            // Pattern: root_v6.28.04_Ubuntu_20.04_python3.10.zip
+            /root_v([\d.]+)_Ubuntu_[\d.]+_python([\d.]+)\.zip/i,
+            // Pattern: root_v6.28.04_Ubuntu_20.04.zip (legacy, assume Python from tag or default)
+            /root_v([\d.]+)_Ubuntu_([\d.]+)\.zip/i
+        ];
+        
+        for (let i = 0; i < patterns.length; i++) {
+            const match = assetName.match(patterns[i]);
+            if (match) {
+                let rootVersion = match[1];
+                let pythonVersion = match[2];
+                
+                // For legacy format, try to extract Python from tag or use default
+                if (i === 2) {
+                    const tagPythonMatch = tagName.match(/python([\d.]+)/i);
+                    if (tagPythonMatch) {
+                        pythonVersion = tagPythonMatch[1];
+                    } else {
+                        pythonVersion = '3.10'; // Default for legacy builds
+                    }
+                }
+                
+                return {
+                    rootVersion,
+                    pythonVersion,
+                    fileName: assetName,
+                    downloadUrl,
+                    tagName
+                };
+            }
+        }
+        return null;
+    }
+    
+    // Fetch releases from GitHub API
+    async function fetchReleases() {
+        try {
+            const response = await fetch(GITHUB_API);
+            if (!response.ok) throw new Error('Failed to fetch releases');
+            
+            const releases = await response.json();
+            const builds = [];
+            
+            for (const release of releases) {
+                for (const asset of release.assets) {
+                    if (asset.name.endsWith('.zip')) {
+                        const parsed = parseAssetName(asset.name, asset.browser_download_url, release.tag_name);
+                        if (parsed) {
+                            builds.push(parsed);
+                        }
+                    }
+                }
+            }
+            
+            return builds;
+        } catch (error) {
+            console.error('Error fetching releases:', error);
+            throw error;
+        }
+    }
+    
+    // Group builds by ROOT version
+    function groupBuildsByRootVersion(builds) {
+        const grouped = {};
+        for (const build of builds) {
+            if (!grouped[build.rootVersion]) {
+                grouped[build.rootVersion] = [];
+            }
+            grouped[build.rootVersion].push(build);
+        }
+        
+        // Sort ROOT versions (newest first)
+        const sortedKeys = Object.keys(grouped).sort((a, b) => {
+            const aParts = a.split('.').map(Number);
+            const bParts = b.split('.').map(Number);
+            for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                const diff = (bParts[i] || 0) - (aParts[i] || 0);
+                if (diff !== 0) return diff;
+            }
+            return 0;
+        });
+        
+        const sorted = {};
+        for (const key of sortedKeys) {
+            sorted[key] = grouped[key];
+        }
+        return sorted;
+    }
+    
+    // Render version cards
+    function renderVersionCards(groupedBuilds) {
+        const container = document.getElementById('version-grid');
+        container.innerHTML = '';
+        
+        for (const [rootVersion, builds] of Object.entries(groupedBuilds)) {
+            const card = document.createElement('div');
+            card.className = 'version-card';
+            
+            const title = document.createElement('h3');
+            title.textContent = `ROOT ${rootVersion}`;
+            card.appendChild(title);
+            
+            const list = document.createElement('ul');
+            
+            // Sort Python versions
+            const sortedBuilds = builds.sort((a, b) => {
+                const aVer = parseFloat(a.pythonVersion);
+                const bVer = parseFloat(b.pythonVersion);
+                return bVer - aVer;
+            });
+            
+            for (const build of sortedBuilds) {
+                const li = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = build.downloadUrl;
+                link.textContent = `Python ${build.pythonVersion}`;
+                link.setAttribute('download', '');
+                li.appendChild(link);
+                list.appendChild(li);
+            }
+            
+            card.appendChild(list);
+            container.appendChild(card);
+        }
+    }
+    
+    // Populate version selectors
+    function populateSelectors(builds) {
+        const rootSelect = document.getElementById('root-version-select');
+        const pythonSelect = document.getElementById('python-version-select');
+        
+        // Get unique versions
+        const rootVersions = [...new Set(builds.map(b => b.rootVersion))].sort((a, b) => {
+            const aParts = a.split('.').map(Number);
+            const bParts = b.split('.').map(Number);
+            for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+                const diff = (bParts[i] || 0) - (aParts[i] || 0);
+                if (diff !== 0) return diff;
+            }
+            return 0;
+        });
+        
+        const pythonVersions = [...new Set(builds.map(b => b.pythonVersion))].sort((a, b) => {
+            return parseFloat(b) - parseFloat(a);
+        });
+        
+        // Populate ROOT selector
+        rootSelect.innerHTML = '';
+        for (const version of rootVersions) {
+            const option = document.createElement('option');
+            option.value = version;
+            option.textContent = `ROOT ${version}`;
+            rootSelect.appendChild(option);
+        }
+        
+        // Populate Python selector
+        pythonSelect.innerHTML = '';
+        for (const version of pythonVersions) {
+            const option = document.createElement('option');
+            option.value = version;
+            option.textContent = `Python ${version}`;
+            pythonSelect.appendChild(option);
+        }
+        
+        // Set initial selection
+        if (rootVersions.length > 0) {
+            selectedRootVersion = rootVersions[0];
+            rootSelect.value = selectedRootVersion;
+        }
+        if (pythonVersions.length > 0) {
+            selectedPythonVersion = pythonVersions[0];
+            pythonSelect.value = selectedPythonVersion;
+        }
+        
+        // Update available Python versions based on ROOT selection
+        updatePythonOptions();
+        updateCodeExamples();
+    }
+    
+    // Update Python options based on selected ROOT version
+    function updatePythonOptions() {
+        const rootVersion = document.getElementById('root-version-select').value;
+        const pythonSelect = document.getElementById('python-version-select');
+        const currentPython = pythonSelect.value;
+        
+        // Get available Python versions for this ROOT version
+        const availablePython = availableBuilds
+            .filter(b => b.rootVersion === rootVersion)
+            .map(b => b.pythonVersion);
+        
+        const uniquePython = [...new Set(availablePython)].sort((a, b) => parseFloat(b) - parseFloat(a));
+        
+        // Update options
+        pythonSelect.innerHTML = '';
+        for (const version of uniquePython) {
+            const option = document.createElement('option');
+            option.value = version;
+            option.textContent = `Python ${version}`;
+            pythonSelect.appendChild(option);
+        }
+        
+        // Try to keep current selection, otherwise use first available
+        if (uniquePython.includes(currentPython)) {
+            pythonSelect.value = currentPython;
+        } else if (uniquePython.length > 0) {
+            pythonSelect.value = uniquePython[0];
+        }
+        
+        selectedRootVersion = rootVersion;
+        selectedPythonVersion = pythonSelect.value;
+    }
+    
+    // Generate setup code based on selected versions
+    function generateSetupCode(rootVersion, pythonVersion, downloadUrl, fileName) {
+        return `# Check Python version and install ROOT
+!python --version
 
+# Step 1: Download the pre-built ROOT tarball from GitHub Releases
+!wget -q --show-progress ${downloadUrl}
+
+# Step 2: Extract the ROOT files
+!unzip -q ${fileName}
+
+# Step 3: Install missing system dependencies for ROOT
+!sudo ldconfig & apt-get install -y git dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev libxft-dev libxext-dev tar gfortran subversion libpython${pythonVersion}-dev
+
+# Step 4: Remove the tarball to free up space
+!rm -f ${fileName}
+
+# Step 5: Install Compatible libssl
+!wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+!rm -f libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+# Step 6: Configure Python paths and load libraries
+import sys
+import ctypes
+
+# Append ROOT paths to Python
+sys.path.append("root_build/")
+sys.path.append("root_build/bin/")
+sys.path.append("root_build/include/")
+sys.path.append("root_build/lib/")
+
+# Load the required shared libraries (.so files)
+ctypes.cdll.LoadLibrary("root_build/lib/libCore.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libThread.so")
+ctypes.cdll.LoadLibrary("root_build/lib/libTreePlayer.so")
+
+print("ROOT ${rootVersion} with Python ${pythonVersion} Loaded Successfully!")`;
+    }
+    
+    // Update code examples based on selection
+    function updateCodeExamples() {
+        const rootVersion = document.getElementById('root-version-select').value;
+        const pythonVersion = document.getElementById('python-version-select').value;
+        
+        // Find matching build
+        const build = availableBuilds.find(b => 
+            b.rootVersion === rootVersion && b.pythonVersion === pythonVersion
+        );
+        
+        const setupCodeElement = document.getElementById('setup-code');
+        const buildInfoElement = document.getElementById('selected-build-info');
+        
+        if (build) {
+            const code = generateSetupCode(rootVersion, pythonVersion, build.downloadUrl, build.fileName);
+            setupCodeElement.textContent = code;
+            
+            buildInfoElement.innerHTML = `
+                <div class="build-info-content">
+                    <span class="build-badge root-badge">ROOT ${rootVersion}</span>
+                    <span class="build-badge python-badge">Python ${pythonVersion}</span>
+                    <a href="${build.downloadUrl}" class="download-link" download>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Direct Download
+                    </a>
+                </div>
+            `;
+            buildInfoElement.style.display = 'block';
+        } else {
+            setupCodeElement.textContent = '# No build available for this combination.\n# Please select a different ROOT/Python version combination.';
+            buildInfoElement.innerHTML = `
+                <div class="build-info-content warning">
+                    <span class="warning-icon">⚠️</span>
+                    <span>No build available for ROOT ${rootVersion} with Python ${pythonVersion}</span>
+                </div>
+            `;
+            buildInfoElement.style.display = 'block';
+        }
+        
+        // Re-apply syntax highlighting if Prism is available
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightElement(setupCodeElement);
+        }
+        
+        // Re-add copy button
+        addCopyButtons();
+    }
+    
+    // Copy to clipboard functionality
+    function copyToClipboard(button, codeElement) {
+        const code = codeElement.textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            button.classList.add('copied');
+            button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
+            setTimeout(() => {
+                button.classList.remove('copied');
+                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy`;
+            }, 2000);
+        });
+    }
+    
+    // Add copy buttons to code blocks
+    function addCopyButtons() {
+        document.querySelectorAll('.code-block pre').forEach(pre => {
+            // Remove existing copy button if present
+            const existingButton = pre.parentNode.querySelector('.copy-button');
+            if (existingButton) {
+                existingButton.remove();
+            }
+            
+            const button = document.createElement('button');
+            button.className = 'copy-button';
+            button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy`;
+            button.onclick = () => copyToClipboard(button, pre.querySelector('code'));
+            pre.parentNode.insertBefore(button, pre);
+        });
+    }
+    
+    // Initialize the page
+    async function init() {
+        const loadingEl = document.getElementById('loading-builds');
+        const errorEl = document.getElementById('builds-error');
+        const gridEl = document.getElementById('version-grid');
+        
+        try {
+            availableBuilds = await fetchReleases();
+            
+            if (availableBuilds.length === 0) {
+                throw new Error('No builds found');
+            }
+            
+            const groupedBuilds = groupBuildsByRootVersion(availableBuilds);
+            
+            // Hide loading, show grid
+            loadingEl.style.display = 'none';
+            gridEl.style.display = 'grid';
+            
+            // Render UI
+            renderVersionCards(groupedBuilds);
+            populateSelectors(availableBuilds);
+            addCopyButtons();
+            
+            // Add event listeners
+            document.getElementById('root-version-select').addEventListener('change', () => {
+                updatePythonOptions();
+                updateCodeExamples();
+            });
+            
+            document.getElementById('python-version-select').addEventListener('change', () => {
+                selectedPythonVersion = document.getElementById('python-version-select').value;
+                updateCodeExamples();
+            });
+            
+        } catch (error) {
+            console.error('Initialization error:', error);
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+        }
+    }
+    
+    // Start when DOM is ready
+    document.addEventListener('DOMContentLoaded', init);
+    </script>
 
 </body>
 </html>
