@@ -21,7 +21,7 @@ jobs:
       max-parallel: 8   
       matrix:
         root-version: ['6.30.04', '6.32.04', '6.34.04', '6.36.04']
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
 
     steps:
     - uses: actions/checkout@v3
